@@ -14,15 +14,19 @@ Major completed experiments reconstructing intact and damaged laser-ultrasound w
 Rows show intact, damaged, and damaged-minus-intact fields. No additional registration/calibration is applied to difference fields. Fixed color scale [-1,1]; metrics use unclipped arrays. Previews retain every sixth original frame and use 64 colors, without spatial resizing; durations are preserved. Original-resolution frames and full-frame-rate animations remain in the source checkpoint archives.
 
 ### Joint 40 µs reconstruction: 20–59.9 µs
+
 ![Joint 40 microsecond reconstruction](WITC_joint40_full_48000.gif)
 
 ### Joint 20 versus joint 40 µs: common interval
+
 ![Joint window comparison](WITC_joint40_vs_joint20_48000.gif)
 
 ### 12k, 24k, and 48k epochs
+
 ![Optimization duration](WITC_long_r16_epochs.gif)
 
 ### 48k through 96k epochs
+
 ![Extended optimization](WITC_96k_r16_epochs.gif)
 
 ### Independent chunks
@@ -55,7 +59,9 @@ Detailed saved tables: [48k](epochs48_metrics.csv), [96k](epochs96_metrics.csv),
 
 After division by flexural rigidity:
 
-$$u_{xxxx}+2u_{xxyy}+u_{yyyy}+c^{-2}u_{tt}=0,\qquad k=1/c,\qquad k^2=\rho h/D.$$
+```math
+u_{xxxx}+2u_{xxyy}+u_{yyyy}+c^{-2}u_{tt}=0,\qquad k=1/c,\qquad k^2=\rho h/D.
+```
 
 **c has units m²/s, not m/s.** The spatial operator uses composed second-order Laplacians, `(Lx + Ly)^2 = Lx^2 + 2 Lx Ly + Ly^2`, rather than a direct fourth-derivative stencil. Cosine diagonalization imposes an even-extension endpoint closure.
 
@@ -80,51 +86,51 @@ At 48k, fitted c is 0.237886/0.238061 m²/s for joint 20 µs and 0.241472/0.2413
 
 ### Exact objective used in the reported runs
 
-For one full space–time atom $d$, scalar coefficient $w$, and reconstruction $\widehat u=wd$, the implemented objective is
+For one full space–time atom $`d`$, scalar coefficient $`w`$, and reconstruction $`\widehat u=wd`$, the implemented objective is
 
-$$
+```math
 \min_{d,w,\;c\in[c_{\min},c_{\max}]}\;
-\frac12\|M\odot(wd-y)\|_2^2
+\frac12\lVert M\odot(wd-y)\rVert _2^2
 +\frac{S}{2}\left[\sum_i\lambda_i d_i^2
-+\lambda_0\gamma\|\mathcal R_c d\|_2^2
++\lambda_0\gamma\lVert \mathcal{R}_c d\rVert _2^2
 +\lambda_0w^2\right].
-$$
+```
 
-Here $y$ is the normalized input wavefield, $M$ is the binary observation mask, and $S=\|M\odot y\|_2$. The sum is over all space–time entries. The three regularizers penalize the spatially weighted atom amplitude, the plate-equation residual of the atom, and the scalar coefficient, respectively. The residual acts on $d$, not on the product $wd$.
+Here $`y`$ is the normalized input wavefield, $`M`$ is the binary observation mask, and $`S=\lVert M\odot y\rVert _2`$. The sum is over all space–time entries. The three regularizers penalize the spatially weighted atom amplitude, the plate-equation residual of the atom, and the scalar coefficient, respectively. The residual acts on $`d`$, not on the product $`wd`$.
 
-$$
-\mathcal R_c=\ell^4\left(L_x^2+2L_xL_y+L_y^2+c^{-2}L_t\right),\qquad \ell=10^{-3}\,\mathrm m.
-$$
+```math
+\mathcal{R}_c=\ell^4\left(L_x^2+2L_xL_y+L_y^2+c^{-2}L_t\right),\qquad \ell=10^{-3}\,\mathrm{m}.
+```
 
-The implementation stores orthonormal cosine coefficients $a$ with $d=Qa$. In these coordinates, $\|\mathcal R_c d\|_2^2=\|\operatorname{diag}(r(c))a\|_2^2$; the amplitude penalty is evaluated in physical coordinates. The full atom spans space and time, without a separable rank-one space/time constraint.
+The implementation stores orthonormal cosine coefficients $`a`$ with $`d=Qa`$. In these coordinates, $`\lVert \mathcal{R}_c d\rVert _2^2=\lVert \mathrm{diag}(r(c))a\rVert _2^2`$; the amplitude penalty is evaluated in physical coordinates. The full atom spans space and time, without a separable rank-one space/time constraint.
 
-$$
-\lambda_i=\lambda_0\exp\left[-\operatorname{dist}(i,\Omega_{\mathrm{obs}})/r\right],\qquad \lambda_0=0.01,\quad r=16\text{ pixels}.
-$$
+```math
+\lambda_i=\lambda_0\exp\left[-\mathrm{dist}(i,\Omega_{\mathrm{obs}})/r\right],\qquad \lambda_0=0.01,\quad r=16\text{ pixels}.
+```
 
-Distance is to the nearest observed spatial location. This map decreases into the missing block and never becomes exactly zero; the implementation guards against floating-point underflow. Since every frame has the same spatial mask, the map is constant over time in these experiments. **Only the atom-amplitude penalty uses this map.** The physics and scalar-coefficient penalties retain the constant $\lambda_0$, with $\gamma=10^{-4}$.
+Distance is to the nearest observed spatial location. This map decreases into the missing block and never becomes exactly zero; the implementation guards against floating-point underflow. Since every frame has the same spatial mask, the map is constant over time in these experiments. **Only the atom-amplitude penalty uses this map.** The physics and scalar-coefficient penalties retain the constant $`\lambda_0`$, with $`\gamma=10^{-4}`$.
 
-Adam updates the atom and scalar coefficient at learning rate $10^{-4}$. After each step, $q=1/c^2$ is updated by exact bounded conditional minimization of the physics term for the current atom; this does not imply global minimization over all variables. With $A=L_x^2+2L_xL_y+L_y^2$ and $B=L_t$,
+Adam updates the atom and scalar coefficient at learning rate $`10^{-4}`$. After each step, $`q=1/c^2`$ is updated by exact bounded conditional minimization of the physics term for the current atom; this does not imply global minimization over all variables. With $`A=L_x^2+2L_xL_y+L_y^2`$ and $`B=L_t`$,
 
-$$
-q^*=\operatorname{clip}\left(-\frac{\langle Ad,Bd\rangle}{\|Bd\|_2^2},\;c_{\max}^{-2},\;c_{\min}^{-2}\right),\qquad c=(q^*)^{-1/2}.
-$$
+```math
+q^{\star}=\mathrm{clip}\left(-\frac{\langle Ad,Bd\rangle}{\lVert Bd\rVert _2^2},\;c_{\max}^{-2},\;c_{\min}^{-2}\right),\qquad c=(q^{\star})^{-1/2}.
+```
 
-If the denominator vanishes, the implementation retains the current c. The selected baseline uses 48,000 total Adam epochs. The observed-data norm $S$ is part of the objective, so changing the fitted time interval can change effective regularization even with unchanged numerical hyperparameters.
+If the denominator vanishes, the implementation retains the current c. The selected baseline uses 48,000 total Adam epochs. The observed-data norm $`S`$ is part of the objective, so changing the fitted time interval can change effective regularization even with unchanged numerical hyperparameters.
 
 ### Material-derived reference c (nominal “true” value)
 
-The [paper's accompanying repository](https://github.com/wangbaoding0816/Laser_Ultrasound_Reconstruction_PINN/blob/main/README.md) specifies $E=70\times10^9\,\mathrm{Pa}$, $\nu=0.33$, $\rho=2700\,\mathrm{kg/m^3}$, and $h=0.2\times10^{-3}\,\mathrm m$. Using these parameters,
+The [paper's accompanying repository](https://github.com/wangbaoding0816/Laser_Ultrasound_Reconstruction_PINN/blob/main/README.md) specifies $`E=70\times10^9\,\mathrm{Pa}`$, $`\nu=0.33`$, $`\rho=2700\,\mathrm{kg/m^3}`$, and $`h=0.2\times10^{-3}\,\mathrm{m}`$. Using these parameters,
 
-$$
+```math
 D=\frac{Eh^3}{12(1-\nu^2)}=0.0523697303\,\mathrm{N\,m},
-$$
+```
 
-$$
+```math
 \boxed{c_{\mathrm{ref}}=\sqrt{\frac{D}{\rho h}}=h\sqrt{\frac{E}{12\rho(1-\nu^2)}}=0.3114176970\,\mathrm{m^2/s}}.
-$$
+```
 
-Equivalently, $k_{\mathrm{ref}}=1/c_{\mathrm{ref}}=3.2111212995\,\mathrm{s/m^2}$. This is calculated from the published implementation's material parameters; it is not a separately measured or learned c reported by our experiments. It is the nominal homogeneous-plate reference, rather than an established ground-truth effective value throughout the damaged specimen.
+Equivalently, $`k_{\mathrm{ref}}=1/c_{\mathrm{ref}}=3.2111212995\,\mathrm{s/m^2}`$. This is calculated from the published implementation's material parameters; it is not a separately measured or learned c reported by our experiments. It is the nominal homogeneous-plate reference, rather than an established ground-truth effective value throughout the damaged specimen.
 
 Our search bounds were therefore **[0.1557088485, 0.6228353941] m²/s**. At 48,000 epochs:
 
@@ -135,7 +141,7 @@ Our search bounds were therefore **[0.1557088485, 0.6228353941] m²/s**. At 48,0
 | 20–59.9 µs | Intact | 0.2414718953 | −22.46% |
 | 20–59.9 µs | Damaged | 0.2413817782 | −22.49% |
 
-Thus the fitted values **do not match the nominal material-derived c**, even though the two specimens yield similar estimates. Improved reconstruction is distinct from accurate physical parameter recovery. c is a flexural dispersion coefficient, not a constant propagation speed: the ideal plane-wave relation is $\omega=c|\boldsymbol\kappa|^2$.
+Thus the fitted values **do not match the nominal material-derived c**, even though the two specimens yield similar estimates. Improved reconstruction is distinct from accurate physical parameter recovery. c is a flexural dispersion coefficient, not a constant propagation speed: the ideal plane-wave relation is $`\omega=c|\boldsymbol\kappa|^2`$.
 
 ## Code, detailed results, and reproduction
 
@@ -154,3 +160,4 @@ Full original checkpoint archives (owner-accessible ChatGPT files):
 - [48k epochs](https://chatgpt.com/library?file_id=libfile_776c6d586e0c8191b759f0d4665e6e66&account_id=personal)
 
 Earlier exploratory mask-size and regularization sweeps are not presented as a complete benchmark here. Substantial interior errors remain. Difference fields are not validated defect-localization maps, and the homogeneous scalar plate model cannot capture every damaged-specimen effect.
+
