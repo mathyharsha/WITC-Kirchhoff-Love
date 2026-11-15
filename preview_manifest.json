@@ -1,0 +1,58 @@
+[
+  {
+    "file": "WITC_long_r16_epochs.gif",
+    "original": "WITC_long_epoch_checkpoint/long_epochs/WITC_long_r16_epochs.gif",
+    "source_sha256": "6cf1ba98af6eb9a92e1cdc514e1dc59937749a1b3c8301a13002b0bfa4136728",
+    "preview_frames": 34,
+    "original_frames": 200,
+    "bytes": 4582344
+  },
+  {
+    "file": "WITC_10us_windows_48000.gif",
+    "original": "WITC_longer_windows_checkpoint/longer_windows/WITC_10us_windows_48000.gif",
+    "source_sha256": "f1d2e1592c91327dc4dfba1383513c41f84017a16a655b2200bb002483cae2bc",
+    "preview_frames": 34,
+    "original_frames": 200,
+    "bytes": 4066725
+  },
+  {
+    "file": "WITC_5us_windows_48000.gif",
+    "original": "WITC_longer_windows_checkpoint/longer_windows/WITC_5us_windows_48000.gif",
+    "source_sha256": "4b453da37a67b9edcf18a6dc4c13d7383491718edbd4138a1734e03bde2ee624",
+    "preview_frames": 34,
+    "original_frames": 200,
+    "bytes": 4098782
+  },
+  {
+    "file": "WITC_joint40_vs_joint20_48000.gif",
+    "original": "WITC_joint40_checkpoint/joint40/WITC_joint40_vs_joint20_48000.gif",
+    "source_sha256": "3fe370332c9065434dddd141dbe0d2323670aaf4f5254860dc2d6010f6b33726",
+    "preview_frames": 34,
+    "original_frames": 200,
+    "bytes": 4024944
+  },
+  {
+    "file": "WITC_joint40_full_48000.gif",
+    "original": "WITC_joint40_checkpoint/joint40/WITC_joint40_full_48000.gif",
+    "source_sha256": "c97048c36992e7fa09d4c3765f67cbd1ab9630ad6a15639811930ba5faf4ef1e",
+    "preview_frames": 67,
+    "original_frames": 400,
+    "bytes": 6024524
+  },
+  {
+    "file": "WITC_96k_r16_epochs.gif",
+    "original": "WITC_96k_checkpoint/epochs96/WITC_96k_r16_epochs.gif",
+    "source_sha256": "a41467b5eb86f800af9aebe4384f7c181955a4e68d3c6b3c8dba80a13d9db516",
+    "preview_frames": 34,
+    "original_frames": 200,
+    "bytes": 4699972
+  },
+  {
+    "file": "WITC_3p4us_chunks_48000.gif",
+    "original": "WITC_chunk34_checkpoint/chunk34/WITC_3p4us_chunks_48000.gif",
+    "source_sha256": "1a8475b37bb26299ad540ec678b45dd94602492a25a1f53430ee1d2ff4a38915",
+    "preview_frames": 29,
+    "original_frames": 170,
+    "bytes": 3569465
+  }
+]
