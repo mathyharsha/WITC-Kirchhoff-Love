@@ -78,6 +78,65 @@ The mask is fixed in time; λ varies spatially and is time-constant here. Only t
 
 At 48k, fitted c is 0.237886/0.238061 m²/s for joint 20 µs and 0.241472/0.241382 m²/s for joint 40 µs (intact/damaged). These effective fitted values do not establish physical parameter identification or agreement with the paper's material coefficient.
 
+### Exact objective used in the reported runs
+
+For one full space–time atom $d$, scalar coefficient $w$, and reconstruction $\widehat u=wd$, the implemented objective is
+
+$$
+\min_{d,w,\;c\in[c_{\min},c_{\max}]}\;
+\frac12\|M\odot(wd-y)\|_2^2
++\frac{S}{2}\left[\sum_i\lambda_i d_i^2
++\lambda_0\gamma\|\mathcal R_c d\|_2^2
++\lambda_0w^2\right].
+$$
+
+Here $y$ is the normalized input wavefield, $M$ is the binary observation mask, and $S=\|M\odot y\|_2$. The sum is over all space–time entries. The three regularizers penalize the spatially weighted atom amplitude, the plate-equation residual of the atom, and the scalar coefficient, respectively. The residual acts on $d$, not on the product $wd$.
+
+$$
+\mathcal R_c=\ell^4\left(L_x^2+2L_xL_y+L_y^2+c^{-2}L_t\right),\qquad \ell=10^{-3}\,\mathrm m.
+$$
+
+The implementation stores orthonormal cosine coefficients $a$ with $d=Qa$. In these coordinates, $\|\mathcal R_c d\|_2^2=\|\operatorname{diag}(r(c))a\|_2^2$; the amplitude penalty is evaluated in physical coordinates. The full atom spans space and time, without a separable rank-one space/time constraint.
+
+$$
+\lambda_i=\lambda_0\exp\left[-\operatorname{dist}(i,\Omega_{\mathrm{obs}})/r\right],\qquad \lambda_0=0.01,\quad r=16\text{ pixels}.
+$$
+
+Distance is to the nearest observed spatial location. This map decreases into the missing block and never becomes exactly zero; the implementation guards against floating-point underflow. Since every frame has the same spatial mask, the map is constant over time in these experiments. **Only the atom-amplitude penalty uses this map.** The physics and scalar-coefficient penalties retain the constant $\lambda_0$, with $\gamma=10^{-4}$.
+
+Adam updates the atom and scalar coefficient at learning rate $10^{-4}$. After each step, $q=1/c^2$ is updated by exact bounded conditional minimization of the physics term for the current atom; this does not imply global minimization over all variables. With $A=L_x^2+2L_xL_y+L_y^2$ and $B=L_t$,
+
+$$
+q^*=\operatorname{clip}\left(-\frac{\langle Ad,Bd\rangle}{\|Bd\|_2^2},\;c_{\max}^{-2},\;c_{\min}^{-2}\right),\qquad c=(q^*)^{-1/2}.
+$$
+
+If the denominator vanishes, the implementation retains the current c. The selected baseline uses 48,000 total Adam epochs. The observed-data norm $S$ is part of the objective, so changing the fitted time interval can change effective regularization even with unchanged numerical hyperparameters.
+
+### Material-derived reference c (nominal “true” value)
+
+The [paper's accompanying repository](https://github.com/wangbaoding0816/Laser_Ultrasound_Reconstruction_PINN/blob/main/README.md) specifies $E=70\times10^9\,\mathrm{Pa}$, $\nu=0.33$, $\rho=2700\,\mathrm{kg/m^3}$, and $h=0.2\times10^{-3}\,\mathrm m$. Using these parameters,
+
+$$
+D=\frac{Eh^3}{12(1-\nu^2)}=0.0523697303\,\mathrm{N\,m},
+$$
+
+$$
+\boxed{c_{\mathrm{ref}}=\sqrt{\frac{D}{\rho h}}=h\sqrt{\frac{E}{12\rho(1-\nu^2)}}=0.3114176970\,\mathrm{m^2/s}}.
+$$
+
+Equivalently, $k_{\mathrm{ref}}=1/c_{\mathrm{ref}}=3.2111212995\,\mathrm{s/m^2}$. This is calculated from the published implementation's material parameters; it is not a separately measured or learned c reported by our experiments. It is the nominal homogeneous-plate reference, rather than an established ground-truth effective value throughout the damaged specimen.
+
+Our search bounds were therefore **[0.1557088485, 0.6228353941] m²/s**. At 48,000 epochs:
+
+| Joint fit | Specimen | Estimated c (m²/s) | Deviation from nominal reference |
+|---|---|---:|---:|
+| 20–39.9 µs | Intact | 0.2378857930 | −23.61% |
+| 20–39.9 µs | Damaged | 0.2380609933 | −23.56% |
+| 20–59.9 µs | Intact | 0.2414718953 | −22.46% |
+| 20–59.9 µs | Damaged | 0.2413817782 | −22.49% |
+
+Thus the fitted values **do not match the nominal material-derived c**, even though the two specimens yield similar estimates. Improved reconstruction is distinct from accurate physical parameter recovery. c is a flexural dispersion coefficient, not a constant propagation speed: the ideal plane-wave relation is $\omega=c|\boldsymbol\kappa|^2$.
+
 ## Code, detailed results, and reproduction
 
 Download [WITC_code_and_results.zip](WITC_code_and_results.zip). It preserves the original source code, experiment runners, render/report scripts, detailed CSV histories, PNG plots, and experiment notes under five checkpoint-named directories. Each directory's Python files belong to that experiment. This is an archival code collection; no new training was performed when assembling it.
